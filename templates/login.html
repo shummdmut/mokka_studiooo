@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вхід — Mokka Studio</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="user-nav">
+        <div class="container">
+            <a href="{{ url_for('home') }}" class="nav-link" style="font-family: 'Montserrat', sans-serif; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase;">⬅ На головну</a>
+        </div>
+    </nav>
+
+    <main class="container" style="display: flex; justify-content: center; align-items: center; min-height: 70vh; padding: 40px 20px;">
+        <div style="background: white; padding: 40px; border: 1px solid #e0d5c1; box-shadow: 0 10px 25px rgba(33, 26, 20, 0.02); width: 100%; max-width: 400px;">
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" style="margin-bottom: 20px;">{{ message }}</div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
+            <h2 style="text-align: center; margin-top: 0; margin-bottom: 30px; font-weight: 400; letter-spacing: 2px; text-transform: uppercase; color: #211a14;">Вхід</h2>
+
+            <form method="POST">
+                <label style="display:block; margin-bottom: 8px; font-family: 'Montserrat', sans-serif; font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; color: #70655c;">Логін:</label>
+                <input type="text" name="username" required style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #e0d5c1; background: #fff; color: #211a14; font-family: 'Montserrat', sans-serif;">
+
+                <label style="display:block; margin-bottom: 8px; font-family: 'Montserrat', sans-serif; font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; color: #70655c;">Пароль:</label>
+                <input type="password" name="password" required style="width: 100%; padding: 12px; margin-bottom: 30px; border: 1px solid #e0d5c1; background: #fff; color: #211a14; font-family: 'Montserrat', sans-serif;">
+
+                <button type="submit" class="btn" style="width: 100%; border: 1px solid #211a14; cursor: pointer; padding: 14px; font-size: 0.9rem; letter-spacing: 2px;">Увійти</button>
+            </form>
+
+            <p style="text-align: center; margin-top: 25px; font-family: 'Montserrat', sans-serif; font-size: 0.85rem; letter-spacing: 0.5px; color: #70655c;">
+                Немає акаунту? <a href="{{ url_for('register') }}" style="color: #c2996b; text-decoration: underline;">Зареєструйтеся тут</a>
+            </p>
+        </div>
+    </main>
+</body>
+</html>

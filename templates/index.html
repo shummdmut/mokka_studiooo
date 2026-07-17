@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mokka Studio — Вироби з рафії</title>
+    <link rel="stylesheet" href="/static/style.css?v=4">
+</head>
+<body>
+
+    <nav class="user-nav">
+        <div class="container nav-container">
+            <div class="auth-links">
+                {% if session.get('username') %}
+                    <span>Привіт, <strong>{{ session['username'] }}</strong>!</span>
+                    <a href="{{ url_for('logout') }}" class="nav-link text-danger">Вийти</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="nav-link">Увійти</a>
+                    <a href="{{ url_for('register') }}" class="nav-link">Реєстрація</a>
+                {% endif %}
+            </div>
+            <div class="cart-box">
+                <a href="{{ url_for('cart') }}" class="cart-link">
+                    🛒 Кошик Mokka (<span class="cart-count">{{ session.get('cart', [])|length }}</span>)
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="container messages">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <header>
+        <div class="container" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <img src="/static/images/logo.png" alt="Mokka Studio Logo">
+            <p class="subtitle">Естетика та тепло виробів з натуральної рафії</p>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <section class="catalog-section">
+            <div class="section-title-box">
+                <h2 class="section-title">Вироби від Mokka Studio</h2>
+                <p>Ексклюзивна ручна робота майстра</p>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 30px; font-family: 'Montserrat', sans-serif;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; color: #70655c;">Сортувати за:</span>
+                    <select id="sortSelect" onchange="sortProducts()" style="padding: 8px 15px; border: 1px solid #e0d5c1; font-size: 0.85rem; background: #fff; color: #211a14; outline: none; cursor: pointer; width: auto; margin-bottom: 0;">
+                        <option value="default">За замовчуванням (В наявності перші)</option>
+                        <option value="price-asc">Ціна: від нижчої до вищої</option>
+                        <option value="price-desc">Ціна: від вищої до нижчої</option>
+                        <option value="alpha">За алфавітом (А-Я)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="product-grid" id="productGrid">
+                {% for product in products %}
+                <div class="product-card"
+                     data-name="{{ product['name'] }}"
+                     data-price="{% if product['discount_price'] %}{{ product['discount_price'] }}{% else %}{{ product['price'] }}{% endif %}"
+                     data-status="{{ product['status'] }}"
+                     data-id="{{ product['id'] }}">
+                    <div class="image-placeholder">
+                        <img src="/static/images/{{ product['image'] }}" alt="{{ product['name'] }}" onerror="this.style.display='none';">
+                        {% if product['status'] == 'available' %}
+                            <span class="badge available">В наявності</span>
+                        {% else %}
+                            <span class="badge order">Під замовлення</span>
+                        {% endif %}
+                    </div>
+                    <div class="product-info">
+                        <h3>{{ product['name'] }}</h3>
+                        {% if product['discount_price'] %}
+                            <p class="price">
+                                <span style="text-decoration: line-through; color: #a19285; font-size: 0.95rem; margin-right: 10px;">{{ product['price'] }} грн</span>
+                                <span style="color: #b83b30;">{{ product['discount_price'] }} грн</span>
+                            </p>
+                        {% else %}
+                            <p class="price">{{ product['price'] }} грн</p>
+                        {% endif %}
+                        <a href="{{ url_for('add_to_cart', product_id=product['id']) }}" class="btn {% if product['status'] == 'order' %}btn-order{% endif %}">
+                            {% if product['status'] == 'available' %}В кошик 🛒{% else %}Замовити 🛒{% endif %}
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-block">
+                <h3>Контакти Mokka Studio</h3>
+                <p>Телефон: +380 97 020 81 86</p>
+                <p>Місцезнаходження: Україна</p>
+            </div>
+            <div class="footer-block">
+                <h3>Ми в соцмережах</h3>
+                <p>Слідкуйте за новинками та процесом створення:</p>
+                <a href="https://instagram.com" target="_blank" class="instagram-link">Instagram Mokka </a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Всі права захищені. Mokka Studio.</p>
+        </div>
+    </footer>
+
+    <script>
+    function sortProducts() {
+        const grid = document.getElementById('productGrid');
+        const cards = Array.from(grid.getElementsByClassName('product-card'));
+        const sortValue = document.getElementById('sortSelect').value;
+
+        cards.sort((a, b) => {
+            const statusA = a.getAttribute('data-status');
+            const statusB = b.getAttribute('data-status');
+
+            if (statusA === 'available' && statusB === 'order') return -1;
+            if (statusA === 'order' && statusB === 'available') return 1;
+
+            if (sortValue === 'price-asc') {
+                return parseFloat(a.getAttribute('data-price')) - parseFloat(b.getAttribute('data-price'));
+            } else if (sortValue === 'price-desc') {
+                return parseFloat(b.getAttribute('data-price')) - parseFloat(a.getAttribute('data-price'));
+            } else if (sortValue === 'alpha') {
+                return a.getAttribute('data-name').localeCompare(b.getAttribute('data-name'), 'uk');
+            } else {
+                return parseInt(b.getAttribute('data-id')) - parseInt(a.getAttribute('data-id'));
+            }
+        });
+
+        grid.innerHTML = '';
+        // ВИПРАВЛЕНО: тепер додається поодинокий об'єкт card, а не весь масив
+        cards.forEach(card => grid.appendChild(card));
+    }
+    </script>
+</body>
+</html>
+
+
